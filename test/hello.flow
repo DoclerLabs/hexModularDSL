@@ -1,0 +1,5 @@
+@context( name = 'applicationContext' )
+{
+	@public
+	hello = new com.hello.HelloToModular();
+}

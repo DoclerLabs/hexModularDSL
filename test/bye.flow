@@ -1,0 +1,5 @@
+@context( name = 'applicationContext' )
+{
+	@public
+	bye = new com.bye.ByeToModular();
+}
