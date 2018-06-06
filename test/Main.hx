@@ -14,17 +14,22 @@ class Main
     {
 		var assembler = new hex.runtime.ApplicationAssembler();
 		
-		hex.compiletime.flow.ModularStaticFlowCompiler.compile( assembler, 
+		/*hex.compiletime.flow.modular.FlowCompiler.compile( assembler, 
 			'hello.flow' ).then(
 			function( code ) 
 			{
 				code.execute();
 				trace( code.locator.hello.sayHello( 'Francis' ) ); 
 			}
-		);
+		);*/
 		
-		hex.compiletime.flow.ModularStaticFlowCompiler.extend( assembler, 'applicationContext',
-			'bye.flow'  ).then(
+		
+		var code = hex.compiletime.flow.BasicStaticFlowCompiler.compile( assembler, 'hello.flow' );
+			code.execute();
+			trace( code.locator.hello.sayHello( 'Francis' ) ); 
+		
+		hex.compiletime.flow.modular.FlowCompiler.compile( assembler,
+			'bye.flow', 'applicationContext2'  ).then(
 			function( code ) 
 			{
 				code.execute();

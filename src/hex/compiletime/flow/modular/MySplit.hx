@@ -1,4 +1,4 @@
-package hex.compiletime.flow;
+package hex.compiletime.flow.modular;
 
 /**
  * @author Francis Bourre
