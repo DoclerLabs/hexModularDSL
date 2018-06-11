@@ -1,4 +1,4 @@
-@context( name = 'applicationContext' )
+@context( name = 'applicationContext2' )
 {
 	@public
 	bye = new com.bye.ByeToModular();
