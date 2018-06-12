@@ -458,7 +458,5 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 
 		assembler.setMainExpression( macro @:mergeBlock $modular  );
 	}
-	
-	
 }
 #end
