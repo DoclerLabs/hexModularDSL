@@ -1,10 +1,7 @@
 package hex.compiletime.flow.modular;
 
-import hex.core.IApplicationAssembler;
-
 #if macro
 import haxe.macro.Expr;
-
 import hex.compiletime.CompileTimeApplicationAssembler;
 import hex.compiletime.CompileTimeParser;
 import hex.compiletime.ICompileTimeApplicationAssembler;
@@ -17,6 +14,7 @@ import hex.compiletime.flow.parser.ExpressionParser;
 import hex.compiletime.util.ClassImportHelper;
 import hex.compiletime.util.ContextBuilder;
 import hex.core.ContextTypeList;
+import hex.core.IApplicationAssembler;
 import hex.core.VariableExpression;
 import hex.log.LogManager;
 import hex.log.MacroLoggerContext;
@@ -45,6 +43,8 @@ class FlowCompiler
 					->AbstractParserCollection<AbstractExprParser<hex.compiletime.basic.BuildRequest>>
 					= ParserCollection.new;
 					
+	static var _m = new Map<String, Bool>();
+					
 	@:allow( hex.compiletime.flow.parser )
 	public static function _readFile(	fileName 						: String,
 										?applicationContextName 		: String,
@@ -69,47 +69,12 @@ class FlowCompiler
 		var assembler 					= new CompileTimeApplicationAssembler();
 		var assemblerExpression			= { name: '', expression: applicationAssemblerExpression };
 		var parser 						= new CompileTimeParser( ParserCollectionConstructor( assemblerExpression, fileName, reader.getRuntimeParam(), exportFileName ) );
-
-		ContextBuilder.onContextTyping( function ( td : TypeDefinition ) { FlowCompiler._register( exportFileName == '' ? td.name : exportFileName, ['hex.context'] ); } );
-		
+	
 		parser.setImportHelper( new ClassImportHelper() );
 		parser.setExceptionReporter( new FlowAssemblingExceptionReporter() );
 		parser.parse( assembler, document, StaticCompileTimeContextFactory, CompileTimeApplicationContext, applicationContextName );
 
 		return assembler.getMainExpression();
-	}
-	
-	static function _register( libName: String, values: Array<String> )
-	{
-		function formatMatch ( s: String )
-		{
-			var m = s.split('_').join('_$').split('.').join('_');
-			return ~/_[A-Z]/.match(m) ? m : m += '_';
-		}
-		
-		var pattern = values
-			.map( formatMatch )
-			.join(',');
-
-		MySplit.register( '$libName=$pattern' );
-	}
-	
-	public static function getModularData( libName: String, values: Array<String> ) : { libName: String, module: String, bridge: String }
-	{
-		function formatMatch ( s: String )
-		{
-			var m = s.split('_').join('_$').split('.').join('_');
-			return ~/_[A-Z]/.match(m) ? m : m += '_';
-		}
-		
-		var pattern = values
-			.map( formatMatch )
-			.join(',');
-
-		var module = '$libName=$pattern';
-		var bridge = '${libName}__BRIDGE__';
-
-		return { libName: libName, module: module, bridge: bridge };
 	}
 	#end
 
@@ -284,7 +249,7 @@ class StaticContextParser extends AbstractExprParser<hex.compiletime.basic.Build
 	override public function parse() : Void
 	{
 		//Register
-		this._applicationContextClass.name = this._applicationContextClass.name != null ? this._applicationContextClass.name : Type.getClassName( hex.runtime.basic.ApplicationContext );
+		if ( this._applicationContextClass.name == null ) this._applicationContextClass.name = Type.getClassName( hex.runtime.basic.ApplicationContext );
 		ContextBuilder.register( this._applicationAssembler.getFactory( this._factoryClass, this.getApplicationContext() ), this._applicationContextClass.name );
 		
 		//Create runtime applicationAssembler
@@ -316,7 +281,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 	var _assemblerVariable 	: VariableExpression;
 	var _fileName 			: String;
 	var _runtimeParam 		: hex.preprocess.RuntimeParam;
-	var _exportFileName 	: String;
+	//var _exportFileName 	: String;
 	
 	public function new( assemblerVariable : VariableExpression, fileName : String, runtimeParam : hex.preprocess.RuntimeParam, exportFileName : String = '' ) 
 	{
@@ -325,7 +290,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		this._assemblerVariable = assemblerVariable;
 		this._fileName 			= fileName;
 		this._runtimeParam 		= runtimeParam;
-		this._exportFileName 	= exportFileName == '' ? this._applicationContextName : exportFileName;
+		//this._exportFileName 	= /*exportFileName == '' ?*/ this._applicationContextName /*: exportFileName*/;
 	}
 	
 	override public function parse() : Void
@@ -355,7 +320,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var varType = builder.getType();
 	
 		var className = builder._iteration.definition.name;
-		
+
 		var classExpr;
 		
 		var applicationContextClassName = this._applicationContextClass.name == null ? 
@@ -365,6 +330,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var applicationContextClassPack = MacroUtil.getPack( applicationContextClassName );
 		var applicationContextCT		= haxe.macro.TypeTools.toComplexType( haxe.macro.Context.getType( applicationContextClassName ) );
 
+		var contextFQN = this._applicationContextPack.join('.') + '.' + contextName;
 		classExpr = macro class $className { public function new( locatorClass, assembler )
 		{
 			this.locator 				= Type.createInstance( locatorClass, [ assembler ] );
@@ -372,8 +338,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 			this.applicationContext 	= this.locator.$contextName;
 		}};
 
-
-		classExpr.pack = [ "hex", "context" ];
+		classExpr.pack = builder._iteration.definition.pack;
 		
 		classExpr.fields.push(
 		{
@@ -427,8 +392,6 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 	
 		//Define Type
 		haxe.macro.Context.defineType( classExpr );
-
-		var modularCode = FlowCompiler.getModularData( this._exportFileName, ['hex.context'] );
 		var typePath = MacroUtil.getTypePath( className );
 		
 		//Generate module's name
@@ -436,19 +399,32 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		mods.splice( mods.length -1, 1 );
 		module = mods.join( '_' );
 
+		var factoryExpr = macro class Factory {
+			public static function getCode( assembler )
+			{
+				var instance = new $typePath( untyped $p { [module] }, assembler );
+				return instance;
+			}
+		};
+		factoryExpr.pack = builder._iteration.definition.pack;
+		haxe.macro.Context.defineType( factoryExpr );
+		
+		var factory = factoryExpr.pack.join('_') + '_Factory';
+		MySplit.register( factory );
+		var bridge = macro var f = untyped $i { factory } = $p { ["$s", factory] };
 		var modular = macro 
 		{
-			@:keep Require.module( $v{ modularCode.libName } )
-				.then(function(id:String) {
-					var _ = $v { modularCode.bridge };
-					var instance = new $typePath( untyped $p { [module] }, $assemblerVarExpression );
-					return instance;
-				});
-		}
+			@:keep Require.module( $v{factory} )
+							.then(
+							function(id:String) 
+							{
+								$bridge;
+								var instance = f.getCode( $assemblerVarExpression );
+								return instance;
+							});
+		};
 
 		assembler.setMainExpression( macro @:mergeBlock $modular  );
 	}
-	
-	
 }
 #end
