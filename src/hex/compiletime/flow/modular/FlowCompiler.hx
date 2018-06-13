@@ -43,7 +43,7 @@ class FlowCompiler
 					->AbstractParserCollection<AbstractExprParser<hex.compiletime.basic.BuildRequest>>
 					= ParserCollection.new;
 					
-	static var _m = new Map<String, Bool>();
+	public static var _m = new Map<String, UInt>();
 					
 	@:allow( hex.compiletime.flow.parser )
 	public static function _readFile(	fileName 						: String,
@@ -53,6 +53,8 @@ class FlowCompiler
 										?applicationAssemblerExpression : Expr ) : Expr
 	{
 		LogManager.context 				= new MacroLoggerContext();
+		
+		
 		
 		//TODO refactor this disgusting hack
 		var split = fileName.split('#');
@@ -93,7 +95,7 @@ class FlowCompiler
 		return FlowCompiler._readFile( fileName + (exportFileName==''?'':'#'+exportFileName) , applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
 	}
 	
-	macro public static function extend<T>( assemblerExpr 			: Expr, 
+	macro public static function expand<T>( assemblerExpr 			: Expr, 
 											applicationContextName : String,
 											fileName 				: String, 
 											?preprocessingVariables : Expr, 
@@ -398,8 +400,15 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var mods = module.split('_');
 		mods.splice( mods.length -1, 1 );
 		module = mods.join( '_' );
+		
+		
+		//
+		var m = FlowCompiler._m;
+		if ( !m.exists( this._applicationContextName ) ) m.set( this._applicationContextName, 0 );
+		m.set( this._applicationContextName, m.get( this._applicationContextName ) + 1 );
 
-		var factoryExpr = macro class Factory {
+		var factoryClassName = 'Factory' + m.get( this._applicationContextName );
+		var factoryExpr = macro class $factoryClassName {
 			public static function getCode( assembler )
 			{
 				var instance = new $typePath( untyped $p { [module] }, assembler );
@@ -409,7 +418,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		factoryExpr.pack = builder._iteration.definition.pack;
 		haxe.macro.Context.defineType( factoryExpr );
 		
-		var factory = factoryExpr.pack.join('_') + '_Factory';
+		var factory = factoryExpr.pack.join('_') + '_' +factoryClassName;
 		MySplit.register( factory );
 		var bridge = macro var f = untyped $i { factory } = $p { ["$s", factory] };
 		var modular = macro 
