@@ -35,7 +35,7 @@ using tink.MacroApi;
  * ...
  * @author Francis Bourre
  */
-class FlowCompiler2 
+class FlowLibCompiler 
 {
 	#if macro
 	public static var ParserCollectionConstructor : VariableExpression
@@ -46,7 +46,7 @@ class FlowCompiler2
 					= ParserCollection.new;
 					
 	public static var _m = new Map<String, UInt>();
-					
+				
 	@:allow( hex.compiletime.flow.parser )
 	public static function _readFile(	fileName 						: String,
 										?applicationContextName 		: String,
@@ -72,7 +72,7 @@ class FlowCompiler2
 		var assemblerExpression			= { name: '', expression: applicationAssemblerExpression };
 		var parser 						= new CompileTimeParser( ParserCollectionConstructor( assemblerExpression, fileName, reader.getRuntimeParam(), exportFileName ) );
 
-		ContextBuilder.onContextTyping( function ( td : TypeDefinition ) { FlowCompiler2._register( exportFileName == '' ? td.name : exportFileName, [td.pack.join('.')]); } );
+		ContextBuilder.onContextTyping( function ( td : TypeDefinition ) { FlowLibCompiler._register( exportFileName == '' ? td.name : exportFileName, [td.pack.join('.')]); } );
 		
 		parser.setImportHelper( new ClassImportHelper() );
 		parser.setExceptionReporter( new FlowAssemblingExceptionReporter() );
@@ -93,12 +93,11 @@ class FlowCompiler2
 				.map( formatMatch )
 				.join(',');
 
-haxe.macro.Context.warning( 'Modular: $libName=$pattern', haxe.macro.Context.currentPos() );
-
+			haxe.macro.Context.warning( 'Modular registering: $libName=$pattern', haxe.macro.Context.currentPos() );
 			MySplit.register( '$libName=$pattern' );
 	}
 	
-	public static function getModularData( libName: String, values: Array<String> ) : { libName: String, module: String, bridge: String }
+	public static function getModularData( libName: String, values: Array<String> ) : { libName: String, bridge: String }
 	{
 		function formatMatch ( s: String )
 		{
@@ -112,8 +111,9 @@ haxe.macro.Context.warning( 'Modular: $libName=$pattern', haxe.macro.Context.cur
 
 		var module = '$libName=$pattern';
 		var bridge = '${libName}__BRIDGE__';
+
 		
-		return { libName: libName, module: module, bridge: bridge };
+		return { libName: libName, bridge: bridge };
 	}
 	#end
 
@@ -129,7 +129,7 @@ haxe.macro.Context.warning( 'Modular: $libName=$pattern', haxe.macro.Context.cur
 			haxe.macro.Context.error( 'Invalid application context name.\n Name should be alphanumeric (underscore is allowed).\n First chararcter should not be a number.', haxe.macro.Context.currentPos() );
 		}
 		
-		return FlowCompiler2._readFile( fileName + (exportFileName==''?'':'#'+exportFileName) , applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
+		return FlowLibCompiler._readFile( fileName + (exportFileName==''?'':'#'+exportFileName) , applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
 	}
 	
 	macro public static function extend<T>( assemblerExpr 			: Expr, 
@@ -138,7 +138,7 @@ haxe.macro.Context.warning( 'Modular: $libName=$pattern', haxe.macro.Context.cur
 											?preprocessingVariables : Expr, 
 											?conditionalVariables 	: Expr ) : ExprOf<T>
 	{
-		return FlowCompiler2._readFile( fileName, applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
+		return FlowLibCompiler._readFile( fileName, applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
 	}
 }
 
@@ -264,11 +264,10 @@ class ImportContextParser extends AbstractExprParser<hex.compiletime.basic.Build
 				return hex.compiletime.xml.BasicStaticXmlCompiler._readFile;
 				
 			case 'flow':
-				return FlowCompiler2._readFile;
+				return FlowLibCompiler._readFile;
 				
 			case ext:
 				trace( ext );
-				
 		}
 		
 		return null;
@@ -428,7 +427,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 
 		//Define Type
 		haxe.macro.Context.defineType( classExpr );
-var modularCode = FlowCompiler2.getModularData( this._applicationContextName, builder._iteration.definition.pack );
+
 		var typePath = MacroUtil.getTypePath( className );
 		
 		//Generate module's name
@@ -437,9 +436,8 @@ var modularCode = FlowCompiler2.getModularData( this._applicationContextName, bu
 		mods.splice( mods.length -1, 1 );
 		module = mods.join( '_' );
 		
-		
 		//
-		var m = FlowCompiler2._m;
+		var m = FlowLibCompiler._m;
 		if ( !m.exists( this._applicationContextName ) ) m.set( this._applicationContextName, 0 );
 		m.set( this._applicationContextName, m.get( this._applicationContextName ) + 1 );
 
@@ -451,12 +449,13 @@ var modularCode = FlowCompiler2.getModularData( this._applicationContextName, bu
 				return instance;
 			}
 		};
+		
 		factoryExpr.pack = builder._iteration.definition.pack;
 		haxe.macro.Context.defineType( factoryExpr );
 		
 		var factory = factoryExpr.pack.join('_') + '_' +factoryClassName;
-		//MySplit.register( factory );
-		var bridge2 = macro var f = untyped $i { factory };
+		var assignment = macro var f = untyped $i { factory };
+		var modularCode = FlowLibCompiler.getModularData( this._applicationContextName, builder._iteration.definition.pack );
 		
 		var modular = macro 
 		{
@@ -465,35 +464,13 @@ var modularCode = FlowCompiler2.getModularData( this._applicationContextName, bu
 							function(id:String) 
 							{
 								var _ = $v { modularCode.bridge };
-								trace( _ );
-								$bridge2;
-								trace( f );
+								$assignment;
 								var instance = f.getCode( $assemblerVarExpression );
 								return instance;
 							});
 		};
-		/*
-		return macro {
-					@:keep Require.module($v{libName})
-						.then(function(id:String) {
-							var _ = $v{bridge};
-							return id;
-						});
-				}
-*/
-		/*var modular = macro 
-		{
-			@:keep Require.module( $v{ modularCode.libName } )
-				.then(function(id:String) {
-					var _ = $v { modularCode.bridge };
-					var instance = new $typePath( untyped $p { [module] }, $assemblerVarExpression );
-					return instance;
-				});
-		}*/
 
 		assembler.setMainExpression( macro @:mergeBlock $modular  );
 	}
-	
-	
 }
 #end
