@@ -54,13 +54,10 @@ class FlowClassCompiler
 	{
 		LogManager.context 				= new MacroLoggerContext();
 		
-		
-		
 		//TODO refactor this disgusting hack
 		var split = fileName.split('#');
 		var fileName = split[0];
 		var exportFileName = split.length > 1 ? split[1] : '';
-		
 		
 		var conditionalVariablesMap 	= MacroConditionalVariablesProcessor.parse( conditionalVariables );
 		var conditionalVariablesChecker = new ConditionalVariablesChecker( conditionalVariablesMap );
@@ -251,7 +248,7 @@ class StaticContextParser extends AbstractExprParser<hex.compiletime.basic.Build
 	override public function parse() : Void
 	{
 		//Register
-		if ( this._applicationContextClass.name == null ) this._applicationContextClass.name = Type.getClassName( hex.runtime.basic.ApplicationContext );
+		if ( this._applicationContextClass.name == null ) this._applicationContextClass.name = Type.getClassName( hex.runtime.basic.ModularContext );
 		ContextBuilder.register( this._applicationAssembler.getFactory( this._factoryClass, this.getApplicationContext() ), this._applicationContextClass.name );
 		
 		//Create runtime applicationAssembler
@@ -326,7 +323,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var classExpr;
 		
 		var applicationContextClassName = this._applicationContextClass.name == null ? 
-			Type.getClassName( hex.runtime.basic.ApplicationContext ): 
+			Type.getClassName( hex.runtime.basic.ModularContext ): 
 				this._applicationContextClass.name;
 			
 		var applicationContextClassPack = MacroUtil.getPack( applicationContextClassName );
