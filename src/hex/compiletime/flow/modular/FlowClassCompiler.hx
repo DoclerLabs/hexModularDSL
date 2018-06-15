@@ -33,7 +33,7 @@ using tink.MacroApi;
  * ...
  * @author Francis Bourre
  */
-class FlowCompiler 
+class FlowClassCompiler 
 {
 	#if macro
 	public static var ParserCollectionConstructor : VariableExpression
@@ -92,7 +92,7 @@ class FlowCompiler
 			haxe.macro.Context.error( 'Invalid application context name.\n Name should be alphanumeric (underscore is allowed).\n First chararcter should not be a number.', haxe.macro.Context.currentPos() );
 		}
 		
-		return FlowCompiler._readFile( fileName + (exportFileName==''?'':'#'+exportFileName) , applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
+		return FlowClassCompiler._readFile( fileName + (exportFileName==''?'':'#'+exportFileName) , applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
 	}
 	
 	macro public static function expand<T>( assemblerExpr 			: Expr, 
@@ -101,7 +101,7 @@ class FlowCompiler
 											?preprocessingVariables : Expr, 
 											?conditionalVariables 	: Expr ) : ExprOf<T>
 	{
-		return FlowCompiler._readFile( fileName, applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
+		return FlowClassCompiler._readFile( fileName, applicationContextName, preprocessingVariables, conditionalVariables, assemblerExpr );
 	}
 }
 
@@ -227,7 +227,7 @@ class ImportContextParser extends AbstractExprParser<hex.compiletime.basic.Build
 				return hex.compiletime.xml.BasicStaticXmlCompiler._readFile;
 				
 			case 'flow':
-				return FlowCompiler._readFile;
+				return FlowClassCompiler._readFile;
 				
 			case ext:
 				trace( ext );
@@ -400,7 +400,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		module = mods.join( '_' );
 		
 		//
-		var m = FlowCompiler._m;
+		var m = FlowClassCompiler._m;
 		if ( !m.exists( this._applicationContextName ) ) m.set( this._applicationContextName, 0 );
 		m.set( this._applicationContextName, m.get( this._applicationContextName ) + 1 );
 
