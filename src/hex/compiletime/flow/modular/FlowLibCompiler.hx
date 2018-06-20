@@ -41,7 +41,6 @@ class FlowLibCompiler
 	public static var ParserCollectionConstructor : VariableExpression
 					->String
 					->hex.preprocess.RuntimeParam
-					->String
 					->AbstractParserCollection<AbstractExprParser<hex.compiletime.basic.BuildRequest>>
 					= ParserCollection.new;
 					
@@ -56,11 +55,6 @@ class FlowLibCompiler
 	{
 		LogManager.context 				= new MacroLoggerContext();
 		
-		//TODO refactor this disgusting hack
-		var split = fileName.split('#');
-		var fileName = split[0];
-		var exportFileName = split.length > 1 ? split[1] : '';
-		
 		var conditionalVariablesMap 	= MacroConditionalVariablesProcessor.parse( conditionalVariables );
 		var conditionalVariablesChecker = new ConditionalVariablesChecker( conditionalVariablesMap );
 		
@@ -69,9 +63,18 @@ class FlowLibCompiler
 	
 		var assembler 					= new CompileTimeApplicationAssembler();
 		var assemblerExpression			= { name: '', expression: applicationAssemblerExpression };
-		var parser 						= new CompileTimeParser( ParserCollectionConstructor( assemblerExpression, fileName, reader.getRuntimeParam(), exportFileName ) );
+		var parser 						= new CompileTimeParser( ParserCollectionConstructor( assemblerExpression, fileName, reader.getRuntimeParam() ) );
 
-		ContextBuilder.onContextTyping( function ( td : TypeDefinition ) { FlowLibCompiler._register( exportFileName == '' ? td.name : exportFileName, [td.pack.join('.')]); } );
+		ContextBuilder.onContextTyping( 
+			function ( td : TypeDefinition ) 
+			{
+				if ( _m.exists( td.name ) )
+				{
+					trace( _m, td.name, td.pack );
+					FlowLibCompiler._register( td.name, [ td.pack.join('.') ] );
+				}
+			} 
+		);
 		
 		parser.setImportHelper( new ClassImportHelper() );
 		parser.setExceptionReporter( new FlowAssemblingExceptionReporter() );
@@ -147,14 +150,12 @@ class ParserCollection extends AbstractParserCollection<AbstractExprParser<hex.c
 	var _assemblerExpression 	: VariableExpression;
 	var _fileName 				: String;
 	var _runtimeParam 			: hex.preprocess.RuntimeParam;
-	var _exportFileName 		: String;
 	
-	public function new( assemblerExpression : VariableExpression, fileName : String, runtimeParam : hex.preprocess.RuntimeParam, exportFileName : String ) 
+	public function new( assemblerExpression : VariableExpression, fileName : String, runtimeParam : hex.preprocess.RuntimeParam ) 
 	{
 		this._assemblerExpression 	= assemblerExpression;
 		this._fileName 				= fileName;
 		this._runtimeParam 			= runtimeParam;
-		this._exportFileName 		= exportFileName;
 		
 		super();
 	}
@@ -165,7 +166,7 @@ class ParserCollection extends AbstractParserCollection<AbstractExprParser<hex.c
 		this._parserCollection.push( new hex.compiletime.flow.parser.RuntimeParameterParser( this._runtimeParam ) );
 		this._parserCollection.push( new ImportContextParser( hex.compiletime.flow.parser.FlowExpressionParser.parser ) );
 		this._parserCollection.push( new hex.compiletime.flow.parser.ObjectParser( hex.compiletime.flow.parser.FlowExpressionParser.parser, this._runtimeParam ) );
-		this._parserCollection.push( new ModularLauncher( this._assemblerExpression, this._fileName, this._runtimeParam, this._exportFileName ) );
+		this._parserCollection.push( new ModularLauncher( this._assemblerExpression, this._fileName, this._runtimeParam ) );
 	}
 }
 
@@ -318,16 +319,14 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 	var _assemblerVariable 	: VariableExpression;
 	var _fileName 			: String;
 	var _runtimeParam 		: hex.preprocess.RuntimeParam;
-	//var _exportFileName 	: String;
 	
-	public function new( assemblerVariable : VariableExpression, fileName : String, runtimeParam : hex.preprocess.RuntimeParam, exportFileName : String = '' ) 
+	public function new( assemblerVariable : VariableExpression, fileName : String, runtimeParam : hex.preprocess.RuntimeParam ) 
 	{
 		super();
 		
 		this._assemblerVariable = assemblerVariable;
 		this._fileName 			= fileName;
 		this._runtimeParam 		= runtimeParam;
-		//this._exportFileName 	= /*exportFileName == '' ?*/ this._applicationContextName /*: exportFileName*/;
 	}
 	
 	override public function parse() : Void
@@ -365,9 +364,9 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var applicationContextCT		= haxe.macro.TypeTools.toComplexType( haxe.macro.Context.getType( applicationContextClassName ) );
 
 		var contextFQN = this._applicationContextPack.join('.') + '.' + contextName;
-		classExpr = macro class $className { public function new( locatorClass, assembler )
+		classExpr = macro class $className { @:keep public function new( locatorClass, assembler )
 		{
-			this.locator 				= Type.createInstance( locatorClass, [ assembler ] );
+			this.locator 				= hex.compiletime.CodeLocator.get( locatorClass, assembler );
 			this.applicationAssembler 	= assembler;
 			this.applicationContext 	= this.locator.$contextName;
 		}};
@@ -412,6 +411,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		{
 			name: 'execute',
 			pos: haxe.macro.Context.currentPos(),
+			meta: [ { name: ":keep", params: [], pos: haxe.macro.Context.currentPos() } ],
 			kind: FFun( 
 			{
 				args: locatorArguments,
@@ -439,7 +439,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 
 		var factoryClassName = 'Factory' + m.get( this._applicationContextName );
 		var factoryExpr = macro class $factoryClassName {
-			public static function getCode( assembler )
+			@:keep public static function getCode( assembler )
 			{
 				var instance = new $typePath( untyped $p { [module] }, assembler );
 				return instance;

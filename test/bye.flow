@@ -2,4 +2,6 @@
 {
 	@public
 	bye = new com.bye.ByeToModular();
+	
+	bye.sayBye( 'Mr Bourre' );
 }

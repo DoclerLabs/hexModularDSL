@@ -20,19 +20,19 @@ class ModularContext extends AbstractApplicationContext
 	function new( applicationContextName : String )
 	{
 		//build injector
-		var injector : IDependencyInjector = new Injector();
-		injector.mapToValue( IBasicInjector, injector );
-		injector.mapToValue( IDependencyInjector, injector );
+		this._injector = new Injector();
+		this._injector.mapToValue( IBasicInjector, this._injector );
+		this._injector.mapToValue( IDependencyInjector, this._injector );
 		
 		var logger = LogManager.getLogger( applicationContextName );
-		injector.mapToValue( ILogger, logger );
+		this._injector.mapToValue( ILogger, logger );
 		
 		//register applicationContext
-		injector.mapToValue( IApplicationContext, this );
-		injector.mapToValue( IContextModule, this );
+		this._injector.mapToValue( IApplicationContext, this );
+		this._injector.mapToValue( IContextModule, this );
 
 		super( null, applicationContextName );
 	}
 	
-	override public function getLogger() return this.getInjector().getInstance( ILogger );
+	override public function getLogger() return this._injector.getInstance( ILogger );
 }
