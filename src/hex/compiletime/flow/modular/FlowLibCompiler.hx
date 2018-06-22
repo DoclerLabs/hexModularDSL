@@ -70,7 +70,6 @@ class FlowLibCompiler
 			{
 				if ( _m.exists( td.name ) )
 				{
-					trace( _m, td.name, td.pack );
 					FlowLibCompiler._register( td.name, [ td.pack.join('.') ] );
 				}
 			} 
@@ -433,13 +432,14 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		module = mods.join( '_' );
 		
 		//
+		var ct = haxe.macro.TypeTools.toComplexType( haxe.macro.Context.getType( className ) );
 		var m = FlowLibCompiler._m;
 		if ( !m.exists( this._applicationContextName ) ) m.set( this._applicationContextName, 0 );
 		m.set( this._applicationContextName, m.get( this._applicationContextName ) + 1 );
 
 		var factoryClassName = 'Factory' + m.get( this._applicationContextName );
 		var factoryExpr = macro class $factoryClassName {
-			@:keep public static function getCode( assembler )
+			@:keep public static function getCode( assembler ) : $ct
 			{
 				var instance = new $typePath( untyped $p { [module] }, assembler );
 				return instance;
@@ -450,7 +450,6 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		haxe.macro.Context.defineType( factoryExpr );
 		
 		var factory = factoryExpr.pack.join('_') + '_' +factoryClassName;
-		var assignment = macro var f = untyped $i { factory };
 		var modularCode = FlowLibCompiler.getModularData( this._applicationContextName, builder._iteration.definition.pack );
 		
 		var modular = macro 
@@ -460,8 +459,8 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 							function(id:String) 
 							{
 								var _ = $v { modularCode.bridge };
-								$assignment;
-								var instance = f.getCode( $assemblerVarExpression );
+								var f = untyped $i { factory };
+								var instance : $ct = f.getCode( $assemblerVarExpression );
 								return instance;
 							});
 		};
