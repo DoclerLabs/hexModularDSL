@@ -1,0 +1,14 @@
+{
+  "name": "hexmodulardsl",
+  "license": "MIT",
+  "classPath": "src",
+  "tags": ["hexmachina", "dsl", "oop"],
+  "description": "hexDSL contains DSL toolkit written in Haxe",
+  "contributors": ["doclerlabs"],
+  "releasenote": "First release. Still alpha testing",
+  "version": "git",
+  "url": "https://github.com/DoclerLabs/hexModularDSL",
+  "dependencies":
+  {
+  }
+}
