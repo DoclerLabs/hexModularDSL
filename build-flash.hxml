@@ -10,4 +10,4 @@ build-each.hxml
 --next
 
 -swf-version 11
--swf bin/MainTest.swf
+-swf bin/MainModularDslTest.swf

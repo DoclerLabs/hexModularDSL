@@ -8,4 +8,4 @@ build-each.hxml
 
 --next
 
--neko bin/MainTest.n
+-neko bin/MainModularDslTest.n

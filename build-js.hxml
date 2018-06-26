@@ -8,4 +8,4 @@ build-each.hxml
 
 --next
 
--js bin/MainTest.js
+-js bin/MainModularDslTest.js
