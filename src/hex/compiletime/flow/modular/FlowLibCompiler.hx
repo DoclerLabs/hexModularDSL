@@ -452,9 +452,14 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var factory = factoryExpr.pack.join('_') + '_' +factoryClassName;
 		var modularCode = FlowLibCompiler.getModularData( this._applicationContextName, builder._iteration.definition.pack );
 		
+		var prodLibName = '<' + modularCode.libName + '>';
 		var modular = macro 
 		{
-			@:keep Require.module( $v{modularCode.libName} )
+			#if debug
+			@:keep Require.module( $v { modularCode.libName } )
+			#else
+			@:keep Require.module( $v { prodLibName } )
+			#end
 							.then(
 							function(id:String) 
 							{
@@ -463,6 +468,8 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 								var instance : $ct = f.getCode( $assemblerVarExpression );
 								return instance;
 							});
+			
+			
 		};
 
 		assembler.setMainExpression( macro @:mergeBlock $modular  );

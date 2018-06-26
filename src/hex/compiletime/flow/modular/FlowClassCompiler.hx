@@ -415,9 +415,15 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 		var factory = factoryExpr.pack.join('_') + '_' +factoryClassName;
 		MySplit.register( factory );
 		var bridge = macro var f = untyped $i { factory } = $p { ["$s", factory] };
+		
+		var prodLibName = '<' + factory + '>';
 		var modular = macro 
 		{
-			@:keep Require.module( $v{factory} )
+			#if debug
+			@:keep Require.module( $v { factory } )
+			#else
+			@:keep Require.module( $v { prodLibName } )
+			#end
 							.then(
 							function(id:String) 
 							{
