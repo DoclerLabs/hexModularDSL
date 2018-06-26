@@ -1,11 +1,18 @@
 build-each.hxml
 
---each
+#--each
 
---macro include('hex')
---no-output
--js bin/docs.js
+#--macro include('hex')
+#--no-output
+#-js bin/docs.js
 
---next
+#--next
+
+--macro Split.modules()
+-D closure_disabled
+-D closure_overwrite
+-D uglifyjs_disabled
+-D uglifyjs_overwrite
+#-D modular_noprocess
 
 -js bin/MainModularDslTest.js
