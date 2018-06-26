@@ -7,4 +7,4 @@ hexModularDSL contains an alternative version of the DSL compiler to split gener
 ## Dependencies
 
 * [hexDSL](https://github.com/DoclerLabs/hexDSL)
-* [hexDSL](https://github.com/elsassph/haxe-modular)
+* [haxe-modular](https://github.com/elsassph/haxe-modular)
