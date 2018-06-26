@@ -1,0 +1,9 @@
+-main MainDslTest
+
+-lib hexmodulardsl
+-lib hexunit
+-lib tink_macro
+-lib haxe_modular
+
+-cp test
+-D debug=true

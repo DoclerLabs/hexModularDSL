@@ -10,5 +10,7 @@
   "url": "https://github.com/DoclerLabs/hexModularDSL",
   "dependencies":
   {
+    "hexdsl": "git:https://github.com/DoclerLabs/hexDSL.git",
+	"haxe_modular": "https://github.com/elsassph/haxe-modular.git"
   }
 }
