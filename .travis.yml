@@ -33,6 +33,9 @@ before_install:
 install:
   - haxelib newrepo
   - export BRANCH_REF=$DEPENDENCIES_BRANCH
+# haxe-modular
+  - git clone --recursive https://github.com/elsassph/haxe-modular.git
+  - haxelib dev haxe_modular ./haxe_modular
 # hexLog
   - if [[ $( git ls-remote https://github.com/DoclerLabs/hexLog.git $DEPENDENCIES_BRANCH --heads | wc -l ) == "0" ]]; then export DEPENDENCIES_BRANCH=master; else export DEPENDENCIES_BRANCH=$BRANCH_REF; fi
   - echo Checking out $DEPENDENCIES_BRANCH
@@ -73,13 +76,13 @@ install:
   - haxelib dev hexmodulardsl .
   - export DISPLAY=:99.0;
   - export AUDIODEV=null;
-  - haxe flash/install.hxml
+#  - haxe flash/install.hxml
 
 script:
   - haxe build-php.hxml          && php bin/index.php
-  - haxe build-neko.hxml         && neko bin/MainTest.n
-  - haxe build-js.hxml           && node bin/MainTest.js
-  - haxe build-flash.hxml -D fdb && haxe flash/run.hxml bin/MainTest.swf
+  - haxe build-neko.hxml         && neko bin/MainModularDslTest.n
+  - haxe build-js.hxml           && node bin/MainModularDslTest.js
+#  - haxe build-flash.hxml -D fdb && haxe flash/run.hxml bin/MainModularDslTest.swf
   
 notifications:
   email:
