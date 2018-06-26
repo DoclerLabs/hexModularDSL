@@ -1,4 +1,4 @@
--main MainDslTest
+-main MainModularDslTest
 
 -lib hexmodulardsl
 -lib hexunit
