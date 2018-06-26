@@ -1,5 +1,9 @@
-@context( name = 'applicationContext' )
+@context( 	name 	= 'applicationContext',
+			params 	= { s : String } )
 {
 	@public
 	bye = new com.bye.ByeToModular();
+	
+	@public
+	text = s;
 }
