@@ -35,7 +35,7 @@ install:
   - export BRANCH_REF=$DEPENDENCIES_BRANCH
 # haxe-modular
   - git clone --recursive https://github.com/elsassph/haxe-modular.git
-  - haxelib dev haxe_modular ./haxe_modular
+  - haxelib dev modular ./haxe_modular
 # hexLog
   - if [[ $( git ls-remote https://github.com/DoclerLabs/hexLog.git $DEPENDENCIES_BRANCH --heads | wc -l ) == "0" ]]; then export DEPENDENCIES_BRANCH=master; else export DEPENDENCIES_BRANCH=$BRANCH_REF; fi
   - echo Checking out $DEPENDENCIES_BRANCH
