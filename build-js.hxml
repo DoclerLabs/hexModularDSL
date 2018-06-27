@@ -13,5 +13,15 @@
 #-D uglifyjs_overwrite
 #-D modular_noprocess
 
--main HexModularDslSuite
+-main MainModularDslTest
+
+-lib hexmodulardsl
+-lib hexunit
+-lib tink_macro
+-lib modular
+-D debug=true
+
+-cp src
+-cp test
+
 -js bin/MainModularDslTest.js
