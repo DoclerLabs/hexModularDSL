@@ -67,7 +67,7 @@ install:
 script:
   - npm install haxe-modular --save
   - haxe build-js.hxml
-  - node MainModularDslTest.js
+  - node bin/MainModularDslTest.js
   
 notifications:
   email:
