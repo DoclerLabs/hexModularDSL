@@ -1,5 +1,3 @@
-build-each.hxml
-
 #--each
 
 #--macro include('hex')
