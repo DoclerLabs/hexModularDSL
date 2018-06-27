@@ -15,4 +15,4 @@ build-each.hxml
 -D uglifyjs_overwrite
 #-D modular_noprocess
 
--js bin/MainModularDslTest.js
+-js MainModularDslTest.js
