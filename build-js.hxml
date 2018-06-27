@@ -8,11 +8,11 @@ build-each.hxml
 
 #--next
 
---macro Split.modules()
--D closure_disabled
--D closure_overwrite
--D uglifyjs_disabled
--D uglifyjs_overwrite
+#--macro Split.modules()
+#-D closure_disabled
+#-D closure_overwrite
+#-D uglifyjs_disabled
+#-D uglifyjs_overwrite
 #-D modular_noprocess
 
 -js MainModularDslTest.js
