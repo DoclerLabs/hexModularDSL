@@ -65,8 +65,8 @@ install:
   - haxelib dev hexmodulardsl .
 
 script:
-  - haxe build-js.hxml
   - npm install haxe-modular --save
+  - haxe build-js.hxml
   - node MainModularDslTest.js
   
 notifications:
