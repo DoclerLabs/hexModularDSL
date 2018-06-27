@@ -13,5 +13,5 @@
 #-D uglifyjs_overwrite
 #-D modular_noprocess
 
--main MainModularDslTest
+-main HexModularDslSuite
 -js bin/MainModularDslTest.js
