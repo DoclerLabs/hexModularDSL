@@ -3,7 +3,7 @@
   "license": "MIT",
   "classPath": "src",
   "tags": ["hexmachina", "dsl", "oop"],
-  "description": "hexDSL contains DSL toolkit written in Haxe",
+  "description": "An alternative version of the DSL compiler to split generated JS code output",
   "contributors": ["doclerlabs"],
   "releasenote": "First release. Still alpha testing",
   "version": "git",
@@ -11,6 +11,6 @@
   "dependencies":
   {
     "hexdsl": "git:https://github.com/DoclerLabs/hexDSL.git",
-	"modular": "https://github.com/elsassph/haxe-modular.git"
+    "modular": "git:https://github.com/elsassph/haxe-modular.git"
   }
 }
