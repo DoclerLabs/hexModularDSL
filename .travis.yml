@@ -22,9 +22,6 @@ before_install:
 install:
   - haxelib newrepo
   - export BRANCH_REF=$DEPENDENCIES_BRANCH
-# haxe-modular
-  - git clone --recursive https://github.com/elsassph/haxe-modular.git ./modular
-  - haxelib dev modular ./modular
 # hexLog
   - if [[ $( git ls-remote https://github.com/DoclerLabs/hexLog.git $DEPENDENCIES_BRANCH --heads | wc -l ) == "0" ]]; then export DEPENDENCIES_BRANCH=master; else export DEPENDENCIES_BRANCH=$BRANCH_REF; fi
   - echo Checking out $DEPENDENCIES_BRANCH
@@ -63,6 +60,7 @@ install:
   - haxelib dev hexdsl ./hexdsl
 # hexModularDSL
   - haxelib dev hexmodulardsl .
+  - haxelib install haxelib.json --always
 
 script:
   - npm install haxe-modular --save
