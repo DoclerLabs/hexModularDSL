@@ -1,4 +1,4 @@
-# hexModularDSL [![TravisCI Build Status](https://travis-ci.org/DoclerLabs/hexModularDSL.svg?branch=master)](https://travis-ci.org/DoclerLabs/hexDSL)
+# hexModularDSL [![TravisCI Build Status](https://travis-ci.org/DoclerLabs/hexModularDSL.svg?branch=master)](https://travis-ci.org/DoclerLabs/hexModularDSL)
 
 hexModularDSL contains an alternative version of the DSL compiler to split generated JS code output
 
