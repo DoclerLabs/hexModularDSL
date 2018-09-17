@@ -11,6 +11,6 @@
   "dependencies":
   {
     "hexdsl": "git:https://github.com/DoclerLabs/hexDSL.git",
-    "modular": "git:https://github.com/elsassph/haxe-modular.git"
+    "modular": "0.10.15"
   }
 }
