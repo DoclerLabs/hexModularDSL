@@ -94,7 +94,6 @@ class FlowLibCompiler
 				.map( formatMatch )
 				.join(',');
 
-			haxe.macro.Context.warning( 'Modular registering: $libName=$pattern', haxe.macro.Context.currentPos() );
 			MySplit.register( '$libName=$pattern' );
 	}
 	
