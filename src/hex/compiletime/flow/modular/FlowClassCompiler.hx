@@ -390,7 +390,7 @@ class ModularLauncher extends AbstractExprParser<hex.compiletime.basic.BuildRequ
 
 		var factoryClassName = 'Factory' + m.get( this._applicationContextName );
 		var factoryExpr = macro class $factoryClassName {
-			public static function getCode( assembler )
+			@:keep public static function getCode( assembler )
 			{
 				var instance = new $typePath( untyped $p { [module] }, assembler );
 				return instance;
